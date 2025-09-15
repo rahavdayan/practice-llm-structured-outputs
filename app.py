@@ -1,4 +1,5 @@
 import streamlit as st
+from prompting import solve_math_problem
 
 # Page configuration
 st.set_page_config(
@@ -31,8 +32,21 @@ if prompt := st.chat_input("Ask a math question..."):
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        # Placeholder response - this is where LLM integration will go
-        response = f"I received your math question: '{prompt}'\n\nThis is a placeholder response. In the full implementation, I would provide a step-by-step solution to your math problem using an LLM backend."
+        # Get structured math solution
+        math_result = solve_math_problem(prompt)
+        
+        if math_result is None:
+            response = "I can only help with specific math problems that have calculable answers. Please ask a math question like 'solve 2x + 5 = 15' or 'find the derivative of x²'."
+        else:
+            # Format the structured response
+            response = "## Step-by-Step Solution\n\n"
+            
+            for i, step in enumerate(math_result.steps, 1):
+                response += f"**Step {i}:** {step.explanation}\n\n"
+                response += f"```\n{step.output}\n```\n\n"
+            
+            response += f"## Final Answer\n\n**{math_result.final_answer}**"
+        
         st.markdown(response)
         
         # Add assistant response to chat history
@@ -45,9 +59,10 @@ with st.sidebar:
     This is a math tutor chatbot that helps you solve math problems step by step.
     
     **Features:**
-    - Interactive chat interface
-    - Step-by-step problem solving
-    - Support for various math topics
+    - Interactive chat interface powered by GPT-4o-mini
+    - Step-by-step problem solving with detailed explanations
+    - Support for algebra, calculus, geometry, and arithmetic
+    - Validates math questions automatically
     
     **How to use:**
     1. Type your math question in the chat input
